@@ -8,38 +8,29 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.seemebetter.admin.ui.analytics.AnalyticsScreen
 import com.seemebetter.admin.ui.auth.LoginScreen
-import com.seemebetter.admin.ui.dashboard.DashboardScreen
 import com.seemebetter.admin.ui.questions.QuestionManagementScreen
 import com.seemebetter.admin.ui.responses.ResponseDetailScreen
 import com.seemebetter.admin.ui.responses.ResponsesScreen
 import com.seemebetter.admin.ui.settings.SettingsScreen
+import com.seemebetter.admin.ui.shell.AdminMainScaffold
 
 @Composable
 fun AdminNavHost(isLoggedIn: Boolean) {
   val nav = rememberNavController()
-  val start = if (isLoggedIn) Routes.Dashboard else Routes.Login
+  val start = if (isLoggedIn) Routes.Main else Routes.Login
 
   NavHost(navController = nav, startDestination = start) {
     composable(Routes.Login) {
       LoginScreen(
         onLoggedIn = {
-          nav.navigate(Routes.Dashboard) { popUpTo(Routes.Login) { inclusive = true } }
+          nav.navigate(Routes.Main) { popUpTo(Routes.Login) { inclusive = true } }
         }
       )
     }
-    composable(Routes.Dashboard) {
-      DashboardScreen(
-        onOpenQuestions = { nav.navigate(Routes.Questions) },
-        onOpenResponses = { nav.navigate(Routes.Responses) },
-        onOpenAnalytics = { nav.navigate(Routes.Analytics) },
-        onOpenSettings = { nav.navigate(Routes.Settings) }
-      )
-    }
-    composable(Routes.Questions) { QuestionManagementScreen(onBack = { nav.popBackStack() }) }
-    composable(Routes.Responses) {
-      ResponsesScreen(
-        onBack = { nav.popBackStack() },
-        onOpenDetail = { id -> nav.navigate("${Routes.ResponseDetail}/$id") }
+    composable(Routes.Main) {
+      AdminMainScaffold(
+        onOpenResponseDetail = { id -> nav.navigate("${Routes.ResponseDetail}/$id") },
+        onLoggedOut = { nav.navigate(Routes.Login) { popUpTo(0) } }
       )
     }
     composable(
@@ -48,10 +39,5 @@ fun AdminNavHost(isLoggedIn: Boolean) {
     ) {
       ResponseDetailScreen(onBack = { nav.popBackStack() })
     }
-    composable(Routes.Analytics) { AnalyticsScreen(onBack = { nav.popBackStack() }) }
-    composable(Routes.Settings) { SettingsScreen(onBack = { nav.popBackStack() }, onLoggedOut = {
-      nav.navigate(Routes.Login) { popUpTo(0) }
-    }) }
   }
 }
-

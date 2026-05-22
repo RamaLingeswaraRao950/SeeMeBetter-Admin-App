@@ -1,6 +1,7 @@
 package com.seemebetter.admin.ui.questions
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,11 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.seemebetter.admin.domain.model.Question
@@ -34,7 +39,6 @@ import com.seemebetter.admin.domain.model.QuestionType
 
 @Composable
 fun QuestionManagementScreen(
-  onBack: () -> Unit,
   viewModel: QuestionsViewModel = hiltViewModel()
 ) {
   val questions by viewModel.questions.collectAsState()
@@ -43,45 +47,53 @@ fun QuestionManagementScreen(
   var showAdd by remember { mutableStateOf(false) }
   var editing by remember { mutableStateOf<Question?>(null) }
 
-  Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-      Button(onClick = onBack) { Text("Back") }
-      Spacer(Modifier.weight(1f))
-      Button(onClick = { showAdd = true }, enabled = !ui.saving) { Text("Add") }
-    }
-    Spacer(Modifier.height(10.dp))
-    Text("Questions", style = MaterialTheme.typography.headlineSmall)
-    if (ui.error != null) Text(ui.error ?: "", color = MaterialTheme.colorScheme.error)
+  Box(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize()) {
+      if (ui.error != null) Text(ui.error ?: "", color = MaterialTheme.colorScheme.error)
 
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-      items(questions, key = { it.id }) { q ->
-        QuestionRow(
-          question = q,
-          onToggleActive = { active -> viewModel.toggleActive(q.id, active) },
-          onDelete = { viewModel.softDelete(q.id) },
-          onEdit = { editing = q },
-          onMoveUp = {
-            val idx = questions.indexOfFirst { it.id == q.id }
-            if (idx > 0) {
-              val ids = questions.map { it.id }.toMutableList()
-              val tmp = ids[idx - 1]
-              ids[idx - 1] = ids[idx]
-              ids[idx] = tmp
-              viewModel.reorder(ids)
+      LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(top = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+      ) {
+        items(questions, key = { it.id }) { q ->
+          QuestionRow(
+            question = q,
+            onToggleActive = { active -> viewModel.toggleActive(q.id, active) },
+            onDelete = { viewModel.softDelete(q.id) },
+            onEdit = { editing = q },
+            onMoveUp = {
+              val idx = questions.indexOfFirst { it.id == q.id }
+              if (idx > 0) {
+                val ids = questions.map { it.id }.toMutableList()
+                val tmp = ids[idx - 1]
+                ids[idx - 1] = ids[idx]
+                ids[idx] = tmp
+                viewModel.reorder(ids)
+              }
+            },
+            onMoveDown = {
+              val idx = questions.indexOfFirst { it.id == q.id }
+              if (idx >= 0 && idx < questions.size - 1) {
+                val ids = questions.map { it.id }.toMutableList()
+                val tmp = ids[idx + 1]
+                ids[idx + 1] = ids[idx]
+                ids[idx] = tmp
+                viewModel.reorder(ids)
+              }
             }
-          },
-          onMoveDown = {
-            val idx = questions.indexOfFirst { it.id == q.id }
-            if (idx >= 0 && idx < questions.size - 1) {
-              val ids = questions.map { it.id }.toMutableList()
-              val tmp = ids[idx + 1]
-              ids[idx + 1] = ids[idx]
-              ids[idx] = tmp
-              viewModel.reorder(ids)
-            }
-          }
-        )
+          )
+        }
+        item { Spacer(modifier = Modifier.height(80.dp)) }
       }
+    }
+
+    FloatingActionButton(
+      onClick = { showAdd = true },
+      modifier = Modifier
+        .align(Alignment.BottomEnd)
+        .padding(16.dp)
+    ) {
+      Icon(Icons.Outlined.Add, contentDescription = "Add question")
     }
   }
 

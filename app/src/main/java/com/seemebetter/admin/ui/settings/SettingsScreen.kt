@@ -4,10 +4,8 @@ import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -26,7 +24,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun SettingsScreen(
-  onBack: () -> Unit,
   onLoggedOut: () -> Unit,
   viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -36,13 +33,7 @@ fun SettingsScreen(
   var message by remember { mutableStateOf("") }
   var cooldown by remember { mutableStateOf("12") }
 
-  Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-    Row {
-      Button(onClick = onBack) { Text("Back") }
-      Spacer(Modifier.weight(1f))
-    }
-    Text("Settings", style = MaterialTheme.typography.headlineSmall)
-
+  Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
     if (state.loading) {
       CircularProgressIndicator()
       return
