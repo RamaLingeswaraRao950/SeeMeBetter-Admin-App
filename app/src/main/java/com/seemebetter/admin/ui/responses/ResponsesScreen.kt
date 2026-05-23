@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -51,11 +51,10 @@ fun ResponsesScreen(
           verticalArrangement = Arrangement.spacedBy(10.dp),
           modifier = Modifier.fillMaxSize()
         ) {
-          items(state.items, key = { it.id }) { r ->
+          itemsIndexed(state.items, key = { _, item -> item.id }) { index, r ->
             Card(modifier = Modifier.fillMaxWidth().clickable { onOpenDetail(r.id) }) {
               Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Response", style = MaterialTheme.typography.titleMedium)
-                Text(r.id, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Response ${index + 1}", style = MaterialTheme.typography.titleMedium)
                 Text("Answers: ${r.answers.size}", style = MaterialTheme.typography.bodyMedium)
               }
             }

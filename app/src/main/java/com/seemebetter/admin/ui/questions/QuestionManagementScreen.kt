@@ -17,6 +17,8 @@ import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -53,6 +55,7 @@ fun QuestionManagementScreen(
 
   var showAdd by remember { mutableStateOf(false) }
   var editing by remember { mutableStateOf<Question?>(null) }
+  var deleteTarget by remember { mutableStateOf<Question?>(null) }
 
   Box(modifier = Modifier.fillMaxSize()) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -78,7 +81,7 @@ fun QuestionManagementScreen(
           QuestionRow(
             question = q,
             onToggleActive = { active -> viewModel.toggleActive(q.id, active) },
-            onDelete = { viewModel.softDelete(q.id) },
+            onDelete = { deleteTarget = q },
             onEdit = { editing = q },
             onMoveUp = {
               val idx = questions.indexOfFirst { it.id == q.id }
@@ -148,6 +151,20 @@ fun QuestionManagementScreen(
       }
     )
   }
+
+  val pendingDelete = deleteTarget
+  if (pendingDelete != null) {
+    ConfirmDialog(
+      title = "Delete question?",
+      text = "This question will be removed from the active feedback form.",
+      confirmText = "Delete",
+      onDismiss = { deleteTarget = null },
+      onConfirm = {
+        viewModel.softDelete(pendingDelete.id)
+        deleteTarget = null
+      }
+    )
+  }
 }
 
 @Composable
@@ -171,7 +188,7 @@ private fun QuestionRow(
           Text(question.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Text(
-          "${question.type.wire} • order ${question.order}${if (question.required) " • required" else ""}",
+          "${question.type.wire} - order ${question.order}${if (question.required) " - required" else ""}",
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -262,7 +279,7 @@ private fun AddQuestionDialog(
           }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-          Button(onClick = { typeMenu = true }) { Text("Type: ${type.wire}") }
+          TypeMenuButton(type = type, onClick = { typeMenu = true })
           DropdownMenu(expanded = typeMenu, onDismissRequest = { typeMenu = false }) {
             QuestionType.entries.forEach { t ->
               DropdownMenuItem(text = { Text(t.wire) }, onClick = { type = t; typeMenu = false })
@@ -278,6 +295,37 @@ private fun AddQuestionDialog(
           )
         }
       }
+    }
+  )
+}
+
+@Composable
+private fun TypeMenuButton(type: QuestionType, onClick: () -> Unit) {
+  Button(onClick = onClick) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+      Text("Type: ${type.wire}")
+      Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Choose question type")
+    }
+  }
+}
+
+@Composable
+private fun ConfirmDialog(
+  title: String,
+  text: String,
+  confirmText: String,
+  onDismiss: () -> Unit,
+  onConfirm: () -> Unit
+) {
+  AlertDialog(
+    onDismissRequest = onDismiss,
+    title = { Text(title) },
+    text = { Text(text) },
+    confirmButton = {
+      Button(onClick = onConfirm) { Text(confirmText) }
+    },
+    dismissButton = {
+      Button(onClick = onDismiss) { Text("Cancel") }
     }
   )
 }
@@ -336,7 +384,7 @@ private fun EditQuestionDialog(
           }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-          Button(onClick = { typeMenu = true }) { Text("Type: ${type.wire}") }
+          TypeMenuButton(type = type, onClick = { typeMenu = true })
           DropdownMenu(expanded = typeMenu, onDismissRequest = { typeMenu = false }) {
             QuestionType.entries.forEach { t ->
               DropdownMenuItem(text = { Text(t.wire) }, onClick = { type = t; typeMenu = false })

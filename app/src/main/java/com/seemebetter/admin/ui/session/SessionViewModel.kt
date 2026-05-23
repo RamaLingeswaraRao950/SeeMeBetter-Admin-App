@@ -14,7 +14,8 @@ import javax.inject.Inject
 data class SessionState(
   val isLoggedIn: Boolean,
   val handle: String? = null,
-  val needsOnboarding: Boolean = false
+  val needsOnboarding: Boolean = false,
+  val loading: Boolean = true
 )
 
 @HiltViewModel
@@ -25,7 +26,7 @@ class SessionViewModel @Inject constructor(
   private val _state = MutableStateFlow(
     SessionState(
       isLoggedIn = authRepository.currentUser() != null,
-      needsOnboarding = authRepository.currentUser() != null
+      loading = true
     )
   )
   val state: StateFlow<SessionState> = _state.asStateFlow()
@@ -34,11 +35,12 @@ class SessionViewModel @Inject constructor(
     viewModelScope.launch {
       authRepository.observeLoggedIn().collect { loggedIn ->
         if (!loggedIn) {
-          _state.value = SessionState(isLoggedIn = false, handle = null, needsOnboarding = false)
+          _state.value = SessionState(isLoggedIn = false, handle = null, needsOnboarding = false, loading = false)
         } else {
+          _state.value = SessionState(isLoggedIn = true, handle = null, needsOnboarding = false, loading = true)
           val profile = try { userRepository.getMyProfile() } catch (_: Exception) { null }
           val handle = profile?.handle?.takeIf { it.isNotBlank() }
-          _state.value = SessionState(isLoggedIn = true, handle = handle, needsOnboarding = handle == null)
+          _state.value = SessionState(isLoggedIn = true, handle = handle, needsOnboarding = handle == null, loading = false)
         }
       }
     }

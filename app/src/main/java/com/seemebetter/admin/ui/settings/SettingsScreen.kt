@@ -9,12 +9,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,6 +47,7 @@ fun SettingsScreen(
   var profileName by remember { mutableStateOf("") }
   var message by remember { mutableStateOf("") }
   var cooldown by remember { mutableStateOf("12") }
+  var showLogoutConfirm by remember { mutableStateOf(false) }
 
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
     if (state.loading) {
@@ -70,15 +79,21 @@ fun SettingsScreen(
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )
       Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        TextButton(onClick = { clipboard.setText(AnnotatedString(baseUrl)) }) { Text("Copy site") }
-        TextButton(onClick = { clipboard.setText(AnnotatedString(s.handle)) }) { Text("Copy handle") }
-        TextButton(
+        IconButton(onClick = { clipboard.setText(AnnotatedString(baseUrl)) }) {
+          Icon(Icons.Outlined.Link, contentDescription = "Copy site link")
+        }
+        IconButton(onClick = { clipboard.setText(AnnotatedString(s.handle)) }) {
+          Icon(Icons.Outlined.ContentCopy, contentDescription = "Copy handle")
+        }
+        IconButton(
           onClick = {
             val i = Intent(Intent.ACTION_VIEW, Uri.parse(baseUrl))
             ctx.startActivity(i)
           }
-        ) { Text("Open") }
-        TextButton(
+        ) {
+          Icon(Icons.Outlined.OpenInNew, contentDescription = "Open website")
+        }
+        IconButton(
           onClick = {
             val share = Intent(Intent.ACTION_SEND).apply {
               type = "text/plain"
@@ -87,7 +102,9 @@ fun SettingsScreen(
             }
             ctx.startActivity(Intent.createChooser(share, "Share link"))
           }
-        ) { Text("Share") }
+        ) {
+          Icon(Icons.Outlined.Share, contentDescription = "Share link")
+        }
       }
       Spacer(Modifier.height(8.dp))
     }
@@ -118,7 +135,7 @@ fun SettingsScreen(
       Button(
         onClick = { viewModel.saveAll(profileName, message, cooldown.toLongOrNull() ?: 12L) },
         enabled = !state.saving
-      ) { Text(if (state.saving) "Saving…" else "Save") }
+      ) { Text(if (state.saving) "Saving..." else "Save") }
 
       Button(
         onClick = {
@@ -132,11 +149,35 @@ fun SettingsScreen(
       ) { Text("Export") }
 
       Button(
-        onClick = {
-          viewModel.logout()
-          onLoggedOut()
-        }
-      ) { Text("Logout") }
+        onClick = { showLogoutConfirm = true },
+        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+          containerColor = MaterialTheme.colorScheme.error,
+          contentColor = MaterialTheme.colorScheme.onError
+        )
+      ) {
+        Icon(Icons.Outlined.Logout, contentDescription = null)
+        Text("Logout")
+      }
     }
+  }
+
+  if (showLogoutConfirm) {
+    AlertDialog(
+      onDismissRequest = { showLogoutConfirm = false },
+      title = { Text("Log out?") },
+      text = { Text("You will need to sign in again to manage your feedback form.") },
+      confirmButton = {
+        Button(
+          onClick = {
+            showLogoutConfirm = false
+            viewModel.logout()
+            onLoggedOut()
+          }
+        ) { Text("Log out") }
+      },
+      dismissButton = {
+        Button(onClick = { showLogoutConfirm = false }) { Text("Cancel") }
+      }
+    )
   }
 }

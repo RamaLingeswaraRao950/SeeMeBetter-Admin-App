@@ -1,6 +1,11 @@
 package com.seemebetter.admin.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,6 +23,13 @@ import com.seemebetter.admin.ui.session.SessionState
 
 @Composable
 fun AdminNavHost(session: SessionState) {
+  if (session.loading) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+      CircularProgressIndicator()
+    }
+    return
+  }
+
   val nav = rememberNavController()
   val start = when {
     !session.isLoggedIn -> Routes.Login
@@ -28,9 +40,7 @@ fun AdminNavHost(session: SessionState) {
   NavHost(navController = nav, startDestination = start) {
     composable(Routes.Login) {
       LoginScreen(
-        onLoggedIn = {
-          nav.navigate(Routes.Onboarding) { popUpTo(Routes.Login) { inclusive = true } }
-        }
+        onLoggedIn = {}
       )
     }
     composable(Routes.Onboarding) {
