@@ -2,10 +2,8 @@ package com.seemebetter.admin.repository
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.seemebetter.admin.data.mappers.toQuestion
 import com.seemebetter.admin.domain.model.Question
-import com.seemebetter.admin.domain.model.QuestionType
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -17,17 +15,22 @@ import javax.inject.Singleton
 class QuestionsRepository @Inject constructor(
   private val db: FirebaseFirestore
 ) {
-  fun observeQuestions(): Flow<List<Question>> = callbackFlow {
+  data class QuestionsStream(
+    val questions: List<Question> = emptyList(),
+    val error: String? = null
+  )
+
+  fun observeQuestions(): Flow<QuestionsStream> = callbackFlow {
     val reg = db.collection("questions")
       .whereEqualTo("isDeleted", false)
-      .orderBy("order", Query.Direction.ASCENDING)
       .addSnapshotListener { snap, err ->
         if (err != null) {
-          trySend(emptyList())
+          trySend(QuestionsStream(error = err.message ?: "Failed to load questions"))
           return@addSnapshotListener
         }
-        val data = snap?.documents?.map { it.toQuestion() } ?: emptyList()
-        trySend(data)
+        val data = (snap?.documents?.map { it.toQuestion() } ?: emptyList())
+          .sortedBy { it.order }
+        trySend(QuestionsStream(questions = data))
       }
     awaitClose { reg.remove() }
   }
@@ -71,4 +74,3 @@ class QuestionsRepository @Inject constructor(
     batch.commit().await()
   }
 }
-

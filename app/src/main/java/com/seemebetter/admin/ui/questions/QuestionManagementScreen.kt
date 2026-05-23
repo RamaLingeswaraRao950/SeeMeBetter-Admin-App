@@ -13,14 +13,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ArrowDownward
+import androidx.compose.material.icons.outlined.ArrowUpward
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -41,8 +48,8 @@ import com.seemebetter.admin.domain.model.QuestionType
 fun QuestionManagementScreen(
   viewModel: QuestionsViewModel = hiltViewModel()
 ) {
-  val questions by viewModel.questions.collectAsState()
   val ui by viewModel.ui.collectAsState()
+  val questions = ui.questions
 
   var showAdd by remember { mutableStateOf(false) }
   var editing by remember { mutableStateOf<Question?>(null) }
@@ -50,6 +57,18 @@ fun QuestionManagementScreen(
   Box(modifier = Modifier.fillMaxSize()) {
     Column(modifier = Modifier.fillMaxSize()) {
       if (ui.error != null) Text(ui.error ?: "", color = MaterialTheme.colorScheme.error)
+
+      if (ui.error == null && questions.isEmpty()) {
+        Card(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+          Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("No questions found", style = MaterialTheme.typography.titleMedium)
+            Text(
+              "If you created questions in Firebase Console, double-check you're using the same Firebase project and that your account is an admin.",
+              style = MaterialTheme.typography.bodySmall
+            )
+          }
+        }
+      }
 
       LazyColumn(
         modifier = Modifier.fillMaxSize().padding(top = 12.dp),
@@ -89,6 +108,9 @@ fun QuestionManagementScreen(
 
     FloatingActionButton(
       onClick = { showAdd = true },
+      containerColor = MaterialTheme.colorScheme.primary,
+      contentColor = MaterialTheme.colorScheme.onPrimary,
+      elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
       modifier = Modifier
         .align(Alignment.BottomEnd)
         .padding(16.dp)
@@ -137,20 +159,51 @@ private fun QuestionRow(
   onMoveUp: () -> Unit,
   onMoveDown: () -> Unit
 ) {
-  Card(modifier = Modifier.fillMaxWidth()) {
-    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-      Text(question.title, style = MaterialTheme.typography.titleMedium)
-      Text("${question.type.wire} • order ${question.order}", style = MaterialTheme.typography.bodySmall)
-      Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row {
-          Checkbox(checked = question.active, onCheckedChange = { onToggleActive(it) })
-          Text("Active")
+  Card(
+    modifier = Modifier.fillMaxWidth(),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+  ) {
+    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+      Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(question.title, style = MaterialTheme.typography.titleMedium)
+        if (question.description.isNotBlank()) {
+          Text(question.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        Text(
+          "${question.type.wire} • order ${question.order}${if (question.required) " • required" else ""}",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+      }
+
+      Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Checkbox(checked = question.active, onCheckedChange = { onToggleActive(it) })
+          Text("Active", style = MaterialTheme.typography.bodyMedium)
+        }
+
         Spacer(Modifier.weight(1f))
-        IconButton(onClick = onMoveUp) { Text("↑") }
-        IconButton(onClick = onMoveDown) { Text("↓") }
-        Button(onClick = onEdit) { Text("Edit") }
-        Button(onClick = onDelete) { Text("Delete") }
+
+        IconButton(
+          onClick = onMoveUp,
+          colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+        ) { Icon(Icons.Outlined.ArrowUpward, contentDescription = "Move up") }
+
+        IconButton(
+          onClick = onMoveDown,
+          colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+        ) { Icon(Icons.Outlined.ArrowDownward, contentDescription = "Move down") }
+
+        IconButton(
+          onClick = onEdit,
+          colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+        ) { Icon(Icons.Outlined.Edit, contentDescription = "Edit") }
+
+        IconButton(
+          onClick = onDelete,
+          colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.error)
+        ) { Icon(Icons.Outlined.DeleteOutline, contentDescription = "Delete") }
       }
     }
   }

@@ -7,14 +7,13 @@ import com.seemebetter.admin.domain.model.QuestionType
 import com.seemebetter.admin.repository.QuestionsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class QuestionsUiState(
+  val questions: List<Question> = emptyList(),
   val saving: Boolean = false,
   val error: String? = null
 )
@@ -23,11 +22,16 @@ data class QuestionsUiState(
 class QuestionsViewModel @Inject constructor(
   private val repo: QuestionsRepository
 ) : ViewModel() {
-  val questions: StateFlow<List<Question>> = repo.observeQuestions()
-    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
   private val _ui = MutableStateFlow(QuestionsUiState())
   val ui: StateFlow<QuestionsUiState> = _ui.asStateFlow()
+
+  init {
+    viewModelScope.launch {
+      repo.observeQuestions().collect { s ->
+        _ui.value = _ui.value.copy(questions = s.questions, error = s.error)
+      }
+    }
+  }
 
   fun create(
     title: String,
@@ -79,4 +83,3 @@ class QuestionsViewModel @Inject constructor(
     repo.reorder(ids)
   }
 }
-

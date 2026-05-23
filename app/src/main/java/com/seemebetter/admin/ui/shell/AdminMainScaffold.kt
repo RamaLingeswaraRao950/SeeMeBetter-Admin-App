@@ -3,15 +3,18 @@ package com.seemebetter.admin.ui.shell
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -45,7 +48,20 @@ fun AdminMainScaffold(
 
   Scaffold(
     modifier = modifier,
-    topBar = { TopAppBar(title = { Text(title) }) },
+    topBar = {
+      TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+          containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+          titleContentColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+          navigationIconContentColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+          actionIconContentColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
+        ),
+        title = {
+          val weight = if (currentRoute == null || currentRoute == Routes.Responses) FontWeight.ExtraBold else FontWeight.Bold
+          Text(title, fontWeight = weight)
+        }
+      )
+    },
     bottomBar = {
       NavigationBar {
         AdminBottomTabs.forEach { tab ->
@@ -59,6 +75,13 @@ fun AdminMainScaffold(
                 restoreState = true
               }
             },
+            colors = NavigationBarItemDefaults.colors(
+              selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+              selectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+              indicatorColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer,
+              unselectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+              unselectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+            ),
             icon = { Icon(tab.icon, contentDescription = tab.label) },
             label = { Text(tab.label) }
           )
