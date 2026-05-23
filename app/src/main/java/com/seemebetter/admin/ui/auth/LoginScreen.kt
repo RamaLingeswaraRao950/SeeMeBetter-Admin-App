@@ -10,6 +10,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,6 +32,7 @@ fun LoginScreen(
   val state by viewModel.uiState.collectAsState()
   var email by remember { mutableStateOf("") }
   var password by remember { mutableStateOf("") }
+  var isSignup by remember { mutableStateOf(false) }
 
   if (state is LoginUiState.Success) {
     onLoggedIn()
@@ -41,7 +43,8 @@ fun LoginScreen(
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    Text("SeeMeBetter Admin", style = MaterialTheme.typography.headlineSmall)
+    Text("SeeMeBetter", style = MaterialTheme.typography.headlineSmall)
+    Text(if (isSignup) "Create account" else "Login", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(20.dp))
     OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, singleLine = true)
     Spacer(Modifier.height(12.dp))
@@ -54,11 +57,18 @@ fun LoginScreen(
     )
     Spacer(Modifier.height(16.dp))
     Button(
-      onClick = { viewModel.login(email, password) },
+      onClick = { if (isSignup) viewModel.signup(email, password) else viewModel.login(email, password) },
       enabled = state !is LoginUiState.Loading
     ) {
       if (state is LoginUiState.Loading) CircularProgressIndicator(strokeWidth = 2.dp)
-      else Text("Login")
+      else Text(if (isSignup) "Create account" else "Login")
+    }
+    Spacer(Modifier.height(8.dp))
+    TextButton(
+      onClick = { isSignup = !isSignup },
+      enabled = state !is LoginUiState.Loading
+    ) {
+      Text(if (isSignup) "I already have an account" else "Create an account")
     }
     if (state is LoginUiState.Error) {
       Spacer(Modifier.height(10.dp))
@@ -66,4 +76,3 @@ fun LoginScreen(
     }
   }
 }
-

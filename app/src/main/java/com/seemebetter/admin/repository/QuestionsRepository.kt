@@ -1,6 +1,7 @@
 package com.seemebetter.admin.repository
 
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.seemebetter.admin.data.mappers.toQuestion
 import com.seemebetter.admin.domain.model.Question
@@ -13,6 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 class QuestionsRepository @Inject constructor(
+  private val auth: FirebaseAuth,
   private val db: FirebaseFirestore
 ) {
   data class QuestionsStream(
@@ -21,7 +23,14 @@ class QuestionsRepository @Inject constructor(
   )
 
   fun observeQuestions(): Flow<QuestionsStream> = callbackFlow {
-    val reg = db.collection("questions")
+    val uid = auth.currentUser?.uid
+    if (uid.isNullOrBlank()) {
+      trySend(QuestionsStream(error = "Not signed in"))
+      close()
+      return@callbackFlow
+    }
+
+    val reg = db.collection("users").document(uid).collection("questions")
       .whereEqualTo("isDeleted", false)
       .addSnapshotListener { snap, err ->
         if (err != null) {
@@ -36,8 +45,9 @@ class QuestionsRepository @Inject constructor(
   }
 
   suspend fun createQuestion(input: Question) {
+    val uid = auth.currentUser?.uid ?: throw IllegalStateException("Not signed in")
     val now = Timestamp.now()
-    val doc = db.collection("questions").document()
+    val doc = db.collection("users").document(uid).collection("questions").document()
     val payload = mapOf(
       "id" to doc.id,
       "title" to input.title,
@@ -56,7 +66,8 @@ class QuestionsRepository @Inject constructor(
   }
 
   suspend fun updateQuestion(id: String, patch: Map<String, Any?>) {
-    db.collection("questions").document(id)
+    val uid = auth.currentUser?.uid ?: throw IllegalStateException("Not signed in")
+    db.collection("users").document(uid).collection("questions").document(id)
       .update(patch + mapOf("updatedAt" to Timestamp.now()))
       .await()
   }
@@ -66,9 +77,10 @@ class QuestionsRepository @Inject constructor(
   }
 
   suspend fun reorder(orderedIds: List<String>) {
+    val uid = auth.currentUser?.uid ?: throw IllegalStateException("Not signed in")
     val batch = db.batch()
     orderedIds.forEachIndexed { idx, id ->
-      val ref = db.collection("questions").document(id)
+      val ref = db.collection("users").document(uid).collection("questions").document(id)
       batch.update(ref, mapOf("order" to idx.toLong(), "updatedAt" to Timestamp.now()))
     }
     batch.commit().await()

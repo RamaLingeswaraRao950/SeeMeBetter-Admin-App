@@ -27,6 +27,10 @@ class AuthRepository @Inject constructor(
     auth.signInWithEmailAndPassword(email, password).await()
   }
 
+  suspend fun createAccount(email: String, password: String) {
+    auth.createUserWithEmailAndPassword(email, password).await()
+  }
+
   fun logout() {
     auth.signOut()
   }

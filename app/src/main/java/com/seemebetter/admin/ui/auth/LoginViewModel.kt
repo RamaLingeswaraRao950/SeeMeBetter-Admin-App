@@ -2,7 +2,6 @@ package com.seemebetter.admin.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.seemebetter.admin.repository.AdminRepository
 import com.seemebetter.admin.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,8 +19,7 @@ sealed interface LoginUiState {
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-  private val authRepository: AuthRepository,
-  private val adminRepository: AdminRepository
+  private val authRepository: AuthRepository
 ) : ViewModel() {
   private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
   val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -31,15 +29,21 @@ class LoginViewModel @Inject constructor(
     viewModelScope.launch {
       try {
         authRepository.login(email.trim(), password)
-        val ok = adminRepository.requireAdmin()
-        if (!ok) {
-          authRepository.logout()
-          _uiState.value = LoginUiState.Error("This user is not an admin.")
-        } else {
-          _uiState.value = LoginUiState.Success
-        }
+        _uiState.value = LoginUiState.Success
       } catch (e: Exception) {
         _uiState.value = LoginUiState.Error(e.message ?: "Login failed")
+      }
+    }
+  }
+
+  fun signup(email: String, password: String) {
+    _uiState.value = LoginUiState.Loading
+    viewModelScope.launch {
+      try {
+        authRepository.createAccount(email.trim(), password)
+        _uiState.value = LoginUiState.Success
+      } catch (e: Exception) {
+        _uiState.value = LoginUiState.Error(e.message ?: "Sign up failed")
       }
     }
   }

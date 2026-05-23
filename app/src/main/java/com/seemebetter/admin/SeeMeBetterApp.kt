@@ -10,6 +10,5 @@ import com.seemebetter.admin.ui.session.SessionViewModel
 @Composable
 fun SeeMeBetterApp(sessionViewModel: SessionViewModel = hiltViewModel()) {
   val session by sessionViewModel.state.collectAsState()
-  AdminNavHost(isLoggedIn = session.isLoggedIn)
+  AdminNavHost(session = session)
 }
-
