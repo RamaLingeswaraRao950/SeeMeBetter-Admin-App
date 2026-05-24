@@ -9,8 +9,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.Image
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
@@ -25,7 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.seemebetter.admin.R
@@ -38,6 +45,7 @@ fun LoginScreen(
   val state by viewModel.uiState.collectAsState()
   var email by remember { mutableStateOf("") }
   var password by remember { mutableStateOf("") }
+  var passwordVisible by remember { mutableStateOf(false) }
   var isSignup by remember { mutableStateOf(false) }
 
   if (state is LoginUiState.Success) {
@@ -49,13 +57,13 @@ fun LoginScreen(
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    Image(
-      painter = painterResource(id = R.drawable.app_logo),
-      contentDescription = "SeeMeBetter logo",
-      modifier = Modifier.size(width = 220.dp, height = 140.dp),
-      contentScale = ContentScale.Fit
-    )
-    Text(if (isSignup) "Create account" else "Login", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+//    Image(
+//      painter = painterResource(id = R.drawable.app_logo),
+//      contentDescription = "SeeMeBetter logo",
+//      modifier = Modifier.size(width = 220.dp, height = 140.dp),
+//      contentScale = ContentScale.Fit
+//    )
+    Text(if (isSignup) "Create account" else "Login", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
     Spacer(Modifier.height(20.dp))
     OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, singleLine = true, modifier = Modifier.fillMaxWidth())
     Spacer(Modifier.height(12.dp))
@@ -65,7 +73,15 @@ fun LoginScreen(
       label = { Text("Password") },
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
-      visualTransformation = PasswordVisualTransformation()
+      visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+      trailingIcon = {
+        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+          Icon(
+            imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+            contentDescription = if (passwordVisible) "Hide password" else "Show password"
+          )
+        }
+      }
     )
     Spacer(Modifier.height(16.dp))
     Button(
