@@ -64,9 +64,10 @@ fun OnboardingScreen(
     OutlinedTextField(
       value = handle,
       onValueChange = { handle = it },
-      label = { Text("Handle (e.g. ramalingam)") },
+      label = { Text("Your public ID") },
+      placeholder = { Text("your-handle") },
       modifier = Modifier.fillMaxWidth(),
-      supportingText = { Text("Allowed: a-z 0-9 _ - (3–20 chars). Lowercase only.") },
+      supportingText = { Text("This is the ID your audience enters to open your feedback form. Allowed: a-z 0-9 _ - (3-20 chars).") },
       singleLine = true
     )
 
