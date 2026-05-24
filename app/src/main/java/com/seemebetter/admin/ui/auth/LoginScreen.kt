@@ -4,8 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -20,9 +23,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.seemebetter.admin.R
 
 @Composable
 fun LoginScreen(
@@ -43,22 +49,29 @@ fun LoginScreen(
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    Text("SeeMeBetter", style = MaterialTheme.typography.headlineSmall)
+    Image(
+      painter = painterResource(id = R.drawable.app_logo),
+      contentDescription = "SeeMeBetter logo",
+      modifier = Modifier.size(width = 220.dp, height = 140.dp),
+      contentScale = ContentScale.Fit
+    )
     Text(if (isSignup) "Create account" else "Login", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(20.dp))
-    OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, singleLine = true)
+    OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, singleLine = true, modifier = Modifier.fillMaxWidth())
     Spacer(Modifier.height(12.dp))
     OutlinedTextField(
       value = password,
       onValueChange = { password = it },
       label = { Text("Password") },
+      modifier = Modifier.fillMaxWidth(),
       singleLine = true,
       visualTransformation = PasswordVisualTransformation()
     )
     Spacer(Modifier.height(16.dp))
     Button(
       onClick = { if (isSignup) viewModel.signup(email, password) else viewModel.login(email, password) },
-      enabled = state !is LoginUiState.Loading
+      enabled = state !is LoginUiState.Loading,
+      modifier = Modifier.fillMaxWidth()
     ) {
       if (state is LoginUiState.Loading) CircularProgressIndicator(strokeWidth = 2.dp)
       else Text(if (isSignup) "Create account" else "Login")

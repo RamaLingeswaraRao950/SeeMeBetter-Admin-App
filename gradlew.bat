@@ -10,8 +10,8 @@ if not defined GRADLE_USER_HOME set GRADLE_USER_HOME=%DIR%.gradle
 if not exist "%WRAPPER_JAR%" (
   echo Missing %WRAPPER_JAR%
   echo Generate the Gradle Wrapper from Android Studio:
-  echo   Gradle tool window -^> (gear) -^> "Generate Gradle Wrapper"
-  echo Or run (using a system Gradle install):
+  echo   Gradle tool window -^> ^(gear^) -^> "Generate Gradle Wrapper"
+  echo Or run ^(using a system Gradle install^):
   echo   gradle wrapper --gradle-version 8.6
   exit /b 1
 )
